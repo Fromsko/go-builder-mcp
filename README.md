@@ -1,13 +1,196 @@
-# GoBuilder MCP Server
+# gobuilder-mcp
 
 一个用于跨平台构建 Go 应用程序的 MCP (Model Context Protocol) 服务器。
 
 ## 功能特性
 
-- 🚀 跨平台构建：支持 Windows、macOS、Linux
-- ⚡ 并行编译：提高构建效率
-- 📦 灵活配置：自定义应用名称、输出目录等
-- 🔧 MCP 集成：通过 MCP 协议提供工具接口
+- 🚀 **跨平台构建**: 支持 Windows、macOS、Linux 多平台并行构建
+- ⚡ **快速构建**: 专门为 MCP 服务优化的快速构建模式
+- 📋 **目标列表**: 列出所有支持的编译目标平台
+- 🐳 **Docker 支持**: 提供 Docker 镜像用于容器化部署
+- 🔄 **CI/CD**: 完整的 GitHub Actions 工作流
+
+## 安装
+
+### 从源码构建
+
+```bash
+git clone https://github.com/fromsko/gobuilder-mcp.git
+cd gobuilder-mcp
+go build -o gobuilder-mcp main.go
+```
+
+### 使用 Docker
+
+```bash
+# 生产环境
+docker pull fromsko/gobuilder-mcp:latest
+docker run --rm fromsko/gobuilder-mcp:latest
+
+# 开发环境
+docker build -f Dockerfile.dev -t gobuilder-mcp:dev .
+docker run --rm gobuilder-mcp:dev
+```
+
+## 使用方法
+
+### 作为 MCP 服务器
+
+启动 MCP 服务器：
+
+```bash
+./gobuilder-mcp
+```
+
+然后在支持 MCP 的客户端中配置服务器路径。
+
+### 可用工具
+
+#### 1. cross_platform_build
+跨平台构建 Go 应用程序，支持 Windows、macOS、Linux 多目标平台并行构建。
+
+**参数:**
+- `source_file`: Go源文件路径，支持绝对路径和相对路径，默认为 ./main.go
+- `app_name`: 生成的可执行文件名称，默认为 app
+- `output_dir`: 输出目录路径，支持绝对路径和相对路径，默认为 bin
+- `targets`: 编译目标平台列表，为空则默认编译 Linux x64 和 Windows x64
+- `jobs`: 并行构建任务数，默认为 4，建议不超过 CPU 核心数
+
+#### 2. mcp_quick_build
+快速构建 Go 应用程序，专门为 MCP 服务优化，同时构建 Linux x64 和 Windows x64 版本。
+
+**参数:**
+- `source_file`: Go源文件路径，支持绝对路径和相对路径，默认为 ./main.go
+- `app_name`: 生成的可执行文件名称，默认为 app
+- `output_dir`: 输出目录路径，支持绝对路径和相对路径，默认为 bin
+
+#### 3. list_build_targets
+列出所有支持的编译目标平台，包含 GOOS、GOARCH 和平台说明信息。
+
+## 支持的平台
+
+| 平台 | GOOS | GOARCH | 说明 |
+|------|------|--------|------|
+| Windows x64 | windows | amd64 | Windows x64 |
+| macOS x64 | darwin | amd64 | macOS x64 |
+| macOS ARM64 | darwin | arm64 | macOS ARM64 |
+| Linux x64 | linux | amd64 | Linux x64 |
+
+## 开发
+
+### 本地开发
+
+```bash
+# 克隆仓库
+git clone https://github.com/fromsko/gobuilder-mcp.git
+cd gobuilder-mcp
+
+# 安装依赖
+go mod tidy
+
+# 运行测试
+go test ./...
+
+# 构建
+go build -o gobuilder-mcp main.go
+
+# 运行
+./gobuilder-mcp
+```
+
+### 使用 Docker 开发
+
+```bash
+# 构建开发镜像
+docker build -f Dockerfile.dev -t gobuilder-mcp:dev .
+
+# 运行开发容器
+docker run --rm -v $(pwd):/app gobuilder-mcp:dev
+```
+
+## 发布
+
+### 自动发布
+
+项目使用 GitHub Actions 进行自动发布：
+
+1. 创建版本标签：`git tag v1.0.0`
+2. 推送标签：`git push origin v1.0.0`
+3. GitHub Actions 将自动：
+   - 运行测试和代码检查
+   - 构建多平台二进制文件
+   - 创建 GitHub Release
+   - 构建 and push Docker 镜像
+
+### 手动发布
+
+```bash
+# 构建多平台版本
+GOOS=linux GOARCH=amd64 go build -o gobuilder-mcp-linux-amd64 main.go
+GOOS=windows GOARCH=amd64 go build -o gobuilder-mcp-windows-amd64.exe main.go
+GOOS=darwin GOARCH=amd64 go build -o gobuilder-mcp-darwin-amd64 main.go
+GOOS=darwin GOARCH=arm64 go build -o gobuilder-mcp-darwin-arm64 main.go
+```
+
+## 配置
+
+### MCP 客户端配置
+
+在你的 MCP 客户端配置文件中添加：
+
+```json
+{
+  "mcpServers": {
+    "gobuilder-mcp": {
+      "command": "/path/to/gobuilder-mcp"
+    }
+  }
+}
+```
+
+### 环境变量
+
+- `GO_VERSION`: 指定 Go 版本（默认：1.21）
+- `GOMAXPROCS`: 设置最大 CPU 核心数
+
+## 贡献
+
+欢迎贡献代码！请遵循以下步骤：
+
+1. Fork 项目
+2. 创建功能分支：`git checkout -b feature/amazing-feature`
+3. 提交更改：`git commit -m 'Add amazing feature'`
+4. 推送分支：`git push origin feature/amazing-feature`
+5. 创建 Pull Request
+
+## 许可证
+
+本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
+
+## 更新日志
+
+### v1.0.0
+- 初始版本发布
+- 支持跨平台构建
+- 集成 MCP 协议
+- 添加 Docker 支持
+- 完整的 CI/CD 工作流
+
+## 支持
+
+如果你遇到问题或有建议，请：
+
+1. 查看 [Issues](https://github.com/fromsko/gobuilder-mcp/issues)
+2. 创建新的 Issue
+3. 参与 [Discussions](https://github.com/fromsko/gobuilder-mcp/discussions)
+
+## 作者
+
+- [fromsko](https://github.com/fromsko)
+
+## 致谢
+
+感谢 [Model Context Protocol](https://modelcontextprotocol.io/) 项目提供的 MCP 框架。
 
 ## 安装和使用
 
