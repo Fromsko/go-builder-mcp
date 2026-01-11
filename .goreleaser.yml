@@ -1,0 +1,94 @@
+# .goreleaser.yml configuration for gobuilder-mcp
+version: 1
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    binary: gobuilder-mcp
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+    flags:
+      - -trimpath
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
+    files:
+      - README.md
+      - LICENSE
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "{{ .ProjectName }}-{{ .Version }}-checksums.txt"
+
+release:
+  github:
+    owner: Fromsko
+    name: go-builder-mcp
+  draft: false
+  prerelease: auto
+  name_template: "{{ .ProjectName }} v{{ .Version }}"
+  header: |
+    ## gobuilder-mcp v{{ .Version }}
+    
+    🚀 跨平台构建 Go 应用程序的 MCP 服务器
+    
+    ### 📦 下载
+    
+    选择适合你操作系统的版本：
+    
+    - **Linux**: gobuilder-mcp-{{ .Version }}-linux-amd64.tar.gz 或 gobuilder-mcp-{{ .Version }}-linux-arm64.tar.gz
+    - **macOS**: gobuilder-mcp-{{ .Version }}-darwin-amd64.tar.gz 或 gobuilder-mcp-{{ .Version }}-darwin-arm64.tar.gz  
+    - **Windows**: gobuilder-mcp-{{ .Version }}-windows-amd64.zip
+    
+    ### 🚀 快速开始
+    
+    ```bash
+    # 下载并解压
+    tar -xzf gobuilder-mcp-{{ .Version }}-linux-amd64.tar.gz
+    
+    # 运行
+    ./gobuilder-mcp
+    ```
+    
+    ### 📖 文档
+    
+    详细使用说明请查看 [README.md](README.md)
+    
+    ---
+    
+    🤖 自动发布于 {{ .Date }}
+  footer: |
+    ### 🙏 致谢
+    
+    感谢所有贡献者和用户的支持！
+    
+    ### 🔗 链接
+    
+    - [项目主页](https://github.com/Fromsko/go-builder-mcp)
+    - [文档](README.md)
+    - [问题反馈](https://github.com/Fromsko/go-builder-mcp/issues)
+    
+    ---
+    
+    本发布由 [GoReleaser](https://goreleaser.com) 自动生成

@@ -13,6 +13,18 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// 版本信息（由 goreleaser 注入）
+var (
+	version = "dev"
+	commit  = "unknown"
+	date    = "unknown"
+)
+
+// getVersionInfo 获取版本信息
+func getVersionInfo() string {
+	return fmt.Sprintf("gobuilder-mcp version %s (commit: %s, built: %s)", version, commit, date)
+}
+
 // 编译目标配置
 type BuildTarget struct {
 	GOOS   string `json:"goos" jsonschema:"目标操作系统"`
@@ -303,7 +315,7 @@ func main() {
 	// 创建 MCP 服务器实例
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "gobuilder-mcp",
-		Version: "v1.0.0",
+		Version: version,
 	}, nil)
 
 	// 添加跨平台构建工具
@@ -325,7 +337,7 @@ func main() {
 	}, ListBuildTargets)
 
 	// 启动服务器，通过 stdio 传输
-	log.Println("Starting GoBuilder MCP Server...")
+	log.Printf("Starting %s...", getVersionInfo())
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		log.Fatal(err)
 	}

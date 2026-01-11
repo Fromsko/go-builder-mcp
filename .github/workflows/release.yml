@@ -9,40 +9,22 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, windows, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          - goos: windows
-            goarch: arm64
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.21'
 
-    - name: Build binary
-      env:
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-        CGO_ENABLED: 0
-      run: |
-        suffix=""
-        if [ "${{ matrix.goos }}" = "windows" ]; then
-          suffix=".exe"
-        fi
-        go build -ldflags="-s -w" -o gobuilder-mcp-${{ matrix.goos }}-${{ matrix.goarch }}${suffix} main.go
-
-    - name: Create release
-      uses: softprops/action-gh-release@v1
+    - name: Run GoReleaser
+      uses: goreleaser/goreleaser-action@v5
       with:
-        files: gobuilder-mcp-*
-        draft: false
-        prerelease: false
-        generate_release_notes: true
+        distribution: goreleaser
+        version: latest
+        args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
